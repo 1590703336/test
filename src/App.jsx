@@ -25,35 +25,26 @@ function App() {
       };
       reader.readAsText(file); // 读取文件内容为文本
     }
-  }
-
-  function formatTime(time) {
-    const [hours, minutes, seconds] = time.split(':');
-    return `${hours}:${minutes}:${seconds.split(',')[0]}`; // 格式化时间为 hh-mm-ss
-  }
-
-  function convertTimeToSeconds(time) {
-    const [hours, minutes, seconds] = time.split(':');
-    return parseInt(hours, 10) * 3600 + parseInt(minutes, 10) * 60 + parseFloat(seconds.replace(',', '.'));
-  }
+  } 
+  
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'ArrowLeft') {
         // 切换到上一句
-        setCurrentSubtitleIndex((prevIndex) => {
-          const newIndex = Math.max(prevIndex - 1, 0);
-          const startTime = convertTimeToSeconds(subtitles[newIndex].startTime);
+        setCurrentSubtitleIndex((prevIndex) => {          
+          const newIndex = Math.max(prevIndex - 1, 0);          
+          const startTime = subtitles[newIndex-1].startSeconds;
           if (playerRef.current) {
-            playerRef.current.seekTo(startTime, 'seconds');
+            playerRef.current.seekTo(startTime, 'seconds');            
           }
           return newIndex;
         });
       } else if (event.key === 'ArrowRight') {
         // 切换到下一句
-        setCurrentSubtitleIndex((prevIndex) => {
-          const newIndex = Math.min(prevIndex + 1, subtitles.length - 1);
-          const startTime = convertTimeToSeconds(subtitles[newIndex].startTime);
+        setCurrentSubtitleIndex((prevIndex) => {          
+          const newIndex = Math.min(prevIndex + 1, subtitles.length - 1);          
+          const startTime = subtitles[newIndex-1].startSeconds;
           if (playerRef.current) {
             playerRef.current.seekTo(startTime, 'seconds');
           }
@@ -62,7 +53,7 @@ function App() {
       } else if (event.key === 'r') {
         // 重复播放当前句子
         if (subtitles.length > 0) {
-          const startTime = convertTimeToSeconds(subtitles[currentSubtitleIndex].startTime);
+          const startTime = subtitles[currentSubtitleIndex].startSeconds;
           if (playerRef.current) {
             playerRef.current.seekTo(startTime, 'seconds');
           }
@@ -80,29 +71,24 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [subtitles, currentSubtitleIndex]);
+  }, [subtitles]); 
 
-  useEffect(() => {
-    if (subtitles.length > 0) {
-      const newTime = convertTimeToSeconds(subtitles[currentSubtitleIndex].startTime);
-      setCurrentTime(newTime);
-    }
-  }, [currentSubtitleIndex, subtitles]);
 
   useEffect(() => {
     if (subtitles.length > 0) {
       const currentSubtitle = subtitles.findIndex(subtitle => {
-        const startTime = convertTimeToSeconds(subtitle.startTime);
-        const endTime = convertTimeToSeconds(subtitle.endTime);
+        const startTime = subtitle.startSeconds;
+        const endTime = subtitle.endSeconds;
         return currentTime >= startTime && currentTime <= endTime;
-      });
-      if (currentSubtitle !== -1 && currentSubtitle !== currentSubtitleIndex) {
-        setCurrentSubtitleIndex(currentSubtitle);
+      });      
+      if (currentSubtitle !== -1 ) {
+        setCurrentSubtitleIndex(Number(subtitles[currentSubtitle].id));          
       }
     }
-  }, [currentTime, subtitles]);
+  }, [currentTime]);
 
   const activeSubtitle = subtitles[currentSubtitleIndex]?.text || '';
+ 
 
   return (
     <main className="container">
@@ -142,14 +128,17 @@ function App() {
           onChange={handleSubtitleUpload}
         />
       </div>
-      <div className="subtitles">
+      <div className="subtitles" style={{ scrollPaddingTop: 'calc(3 * 1.5em)' }}>
         {subtitles.map((subtitle, index) => {
-          const startTime = convertTimeToSeconds(subtitle.startTime);
-          const endTime = convertTimeToSeconds(subtitle.endTime);
-          const isActive = currentTime >= startTime && currentTime <= endTime; // 判断当前时间是否在字幕时间范围内
+          const isActive = currentSubtitleIndex == Number(subtitle.id);
           return (
-            <div key={index} className={isActive ? 'active-subtitle' : ''}>
-              <p>{formatTime(subtitle.startTime)} - {subtitle.text}</p> {/* 显示开始时间和每句话 */}
+            <div
+              key={index}
+              className={isActive ? 'active-subtitle' : ''}
+              ref={isActive ? (el) => el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }) : null}
+              style={{ marginTop: index === 0 ? 'calc(3 * 1.5em)' : '0' }} // 为第一个元素添加额外的顶部间距
+            >
+              <p>{subtitle.id}  {subtitle.startSeconds} - {subtitle.text}</p>             
             </div>
           );
         })}
