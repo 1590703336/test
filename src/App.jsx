@@ -16,6 +16,7 @@ function App() {
   const [networkVideoUrl, setNetworkVideoUrl] = useState(""); // 用于存储网络视频链接
   const [isLocalVideo, setIsLocalVideo] = useState(false); // 用于存储是否为本地视频的状态
   const [isNetworkVideo, setIsNetworkVideo] = useState(false); // 用于存储是否为网络视频的状态
+  const [isRepeating, setIsRepeating] = useState(false); // 用于存储是否重复播放当前字幕
 
   // 处理字幕文件上传
   function handleSubtitleUpload(event) {
@@ -30,14 +31,14 @@ function App() {
       };
       reader.readAsText(file); // 读取文件内容为文本
     }
-  } 
-  
+  }
+
   // 处理键盘事件的效果，例如切换字幕、调整播放速度等
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'ArrowLeft') {
         // 切换到上一句字幕
-        setCurrentSubtitleIndex((prevIndex) => {          
+        setCurrentSubtitleIndex((prevIndex) => {
           const newIndex = Math.max(prevIndex - 1, 0); // 确保索引不小于 0
           const startTime = subtitles[newIndex - 1]?.startSeconds; // 获取上一句字幕的开始时间
           if (playerRef.current) {
@@ -47,7 +48,7 @@ function App() {
         });
       } else if (event.key === 'ArrowRight') {
         // 切换到下一句字幕
-        setCurrentSubtitleIndex((prevIndex) => {          
+        setCurrentSubtitleIndex((prevIndex) => {
           const newIndex = Math.min(prevIndex + 1, subtitles.length - 1); // 确保索引不超过字幕长度
           const startTime = subtitles[newIndex - 1]?.startSeconds; // 获取下一句字幕的开始时间
           if (playerRef.current) {
@@ -56,13 +57,8 @@ function App() {
           return newIndex;
         });
       } else if (event.key === 'r') {
-        // 重复播放当前句子
-        if (subtitles.length > 0) {
-          const startTime = subtitles[currentSubtitleIndex]?.startSeconds; // 获取当前字幕的开始时间
-          if (playerRef.current) {
-            playerRef.current.seekTo(startTime, 'seconds'); // 跳转到当前字幕的开始时间
-          }
-        }
+        // 切换重复播放当前句子的状态
+        setIsRepeating((prev) => !prev);
       } else if (event.key === 'ArrowDown') {
         // 增加播放速度
         setPlaybackRate((prevRate) => Math.min(prevRate + 0.1, 2)); // 最大速度限制为2
@@ -76,7 +72,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown); // 组件卸载时移除事件监听器
     };
-  }, [subtitles]); // 依赖于字幕的变化
+  }, [subtitles, currentSubtitleIndex]); // 确保依赖项包括 currentSubtitleIndex
 
   // 处理当前播放时间的变化来更新当前的字幕索引
   useEffect(() => {
@@ -85,15 +81,16 @@ function App() {
         const startTime = subtitle.startSeconds;
         const endTime = subtitle.endSeconds;
         return currentTime >= startTime && currentTime <= endTime; // 找到当前播放时间对应的字幕
-      });      
+      });
       if (currentSubtitle !== -1) {
         setCurrentSubtitleIndex(Number(subtitles[currentSubtitle].id)); // 更新当前字幕索引         
       }
     }
+
   }, [currentTime]); // 依赖于当前播放时间的变化
 
   const activeSubtitle = subtitles[currentSubtitleIndex]?.text || ''; // 获取当前活跃的字幕文本
- 
+
   // 处理网络视频链接输入
   const handleNetworkVideoSubmit = (e) => {
     e.preventDefault(); // 阻止表单默认提交行为
@@ -120,6 +117,21 @@ function App() {
     setIsNetworkVideo(false); // 重置网络视频标记
   };
 
+  // 处理重复播放当前字幕
+  useEffect(() => {
+    if (isRepeating && subtitles.length > 0) {
+      const currentSubtitle = subtitles[currentSubtitleIndex-1];      
+      if (currentSubtitle) {
+        const { startSeconds, endSeconds } = currentSubtitle;        
+        if (currentTime >= endSeconds) {
+          if (playerRef.current) {
+            playerRef.current.seekTo(startSeconds, 'seconds'); // 跳转到当前字幕的开始时间
+          }
+        }
+      }
+    }
+  }, [currentTime, isRepeating, currentSubtitleIndex, subtitles]);
+
   return (
     <main className="container">
       <div className="home-icon" onClick={resetToHome}>
@@ -145,7 +157,7 @@ function App() {
             </p>
           </div>
         </div>
-        
+
         {/* 当既不是本地视频也不是网络视频时，显示视频输入选项 */}
         {!isLocalVideo && !isNetworkVideo && (
           <>
@@ -170,7 +182,7 @@ function App() {
             </div>
           </>
         )}
-        
+
         {/* 如果是本地视频，显示字幕文件输入选项 */}
         {isLocalVideo && (
           <div className="file-input-wrapper">
@@ -184,7 +196,7 @@ function App() {
           </div>
         )}
       </div>
-      
+
       {/* 显示字幕列表并使当前字幕自动滚动到可视范围内 */}
       <div className="subtitles" style={{ scrollPaddingTop: 'calc(3 * 1.5em)' }}>
         {subtitles.map((subtitle, index) => {
