@@ -119,9 +119,9 @@ function App() {
   // 处理重复播放当前字幕
   useEffect(() => {
     if (isRepeating && subtitles.length > 0) {
-      const currentSubtitle = subtitles[currentSubtitleIndex-1];      
+      const currentSubtitle = subtitles[currentSubtitleIndex - 1];
       if (currentSubtitle) {
-        const { startSeconds, endSeconds } = currentSubtitle;        
+        const { startSeconds, endSeconds } = currentSubtitle;
         if (currentTime >= endSeconds) {
           if (playerRef.current) {
             playerRef.current.seekTo(startSeconds, 'seconds'); // 跳转到当前字幕的开始时间
@@ -156,44 +156,50 @@ function App() {
             </p>
           </div>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'left' }}>
+          <div>
+            {/* 当既不是本地视频也不是网络视频时，显示视频输入选项 */}
+            {!isLocalVideo && !isNetworkVideo && (
+              <>
+                <form onSubmit={handleNetworkVideoSubmit}>
+                  <input
+                    type="text"
+                    value={networkVideoUrl}
+                    onChange={(e) => setNetworkVideoUrl(e.target.value)}
+                    placeholder="输入网络视频链接" // 提示用户输入网络视频链接
+                  />
+                  <button type="submit">加载网络视频</button>
+                </form>
 
-        {/* 当既不是本地视频也不是网络视频时，显示视频输入选项 */}
-        {!isLocalVideo && !isNetworkVideo && (
-          <>
-            <form onSubmit={handleNetworkVideoSubmit}>
-              <input 
-                type="text"
-                value={networkVideoUrl}
-                onChange={(e) => setNetworkVideoUrl(e.target.value)}
-                placeholder="输入网络视频链接" // 提示用户输入网络视频链接
-              />
-              <button type="submit">加载网络视频</button>
-            </form>
-
+                <div className="file-input-wrapper">
+                  <label htmlFor="local-video-input">选择本地视频文件：</label>
+                  <input style={{ width: 150 }}
+                    id="local-video-input"
+                    type="file"
+                    accept="video/*"
+                    onChange={handleLocalVideoUpload}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          {/* 如果是本地视频，显示字幕文件输入选项 */}
+          {isLocalVideo && (
             <div className="file-input-wrapper">
-              <label htmlFor="local-video-input">选择本地视频文件：</label>
-              <input style={{width: 150}}
-                id="local-video-input"
+              <label htmlFor="subtitle-input">选择字幕文件：</label>
+              <input style={{ width: 150 }}
+                id="subtitle-input"
                 type="file"
-                accept="video/*"
-                onChange={handleLocalVideoUpload}
+                accept=".srt,.vtt"
+                onChange={handleSubtitleUpload}
               />
             </div>
-          </>
-        )}
+          )}
+        </div>
 
-        {/* 如果是本地视频，显示字幕文件输入选项 */}
-        {isLocalVideo && (
-          <div className="file-input-wrapper">
-            <label htmlFor="subtitle-input">选择字幕文件：</label>
-            <input style={{width: 150}}
-              id="subtitle-input"
-              type="file"
-              accept=".srt,.vtt"
-              onChange={handleSubtitleUpload}
-            />
-          </div>
-        )}
+
+
+
       </div>
 
       {/* 显示字幕列表使当前字幕自动滚动到可视范围内 */}
@@ -203,7 +209,7 @@ function App() {
           return (
             <div
               key={index}
-              className={isActive ? (isRepeating ? 'active-subtitle-repeat' : 'active-subtitle') : ''} 
+              className={isActive ? (isRepeating ? 'active-subtitle-repeat' : 'active-subtitle') : ''}
               ref={isActive ? (el) => el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }) : null}
               style={{ marginTop: index === 0 ? 'calc(3 * 1.5em)' : '0' }}
             >
