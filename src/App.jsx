@@ -16,7 +16,6 @@ function App() {
   const [isLocalVideo, setIsLocalVideo] = useState(false); // 用于存储是否为本地视频的状态
   const [isNetworkVideo, setIsNetworkVideo] = useState(false); // 用于存储是否为网络视频的状态
   const [isRepeating, setIsRepeating] = useState(false); // 用于存储是否重复播放当前字幕
-  const [isRepeatMode, setIsRepeatMode] = useState(false); // 添加一个状态来跟踪循环模式
 
   // 处理字幕文件上传
   function handleSubtitleUpload(event) {
@@ -39,7 +38,7 @@ function App() {
       if (event.key === 'ArrowLeft') {
         // 切换到上一句字幕
         setCurrentSubtitleIndex((prevIndex) => {
-          const newIndex = Math.max(prevIndex - 1, 0); // 确保索引不小于 0
+          const newIndex = Math.max(prevIndex - 1, 1); // 确保索引不小于 0
           const startTime = subtitles[newIndex - 1]?.startSeconds; // 获取上一句字幕的开始时间
           if (playerRef.current) {
             playerRef.current.seekTo(startTime, 'seconds'); // 跳转到上一句字幕的开始时间           
@@ -132,18 +131,6 @@ function App() {
     }
   }, [currentTime, isRepeating, currentSubtitleIndex, subtitles]);
 
-  // 添加键盘事件监听
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.key === 'r' || e.key === 'R') {
-        setIsRepeatMode(prev => !prev);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
-
   return (
     <main className="container">
       <div className="home-icon" onClick={resetToHome}>
@@ -174,7 +161,7 @@ function App() {
         {!isLocalVideo && !isNetworkVideo && (
           <>
             <form onSubmit={handleNetworkVideoSubmit}>
-              <input
+              <input 
                 type="text"
                 value={networkVideoUrl}
                 onChange={(e) => setNetworkVideoUrl(e.target.value)}
@@ -185,7 +172,7 @@ function App() {
 
             <div className="file-input-wrapper">
               <label htmlFor="local-video-input">选择本地视频文件：</label>
-              <input
+              <input style={{width: 150}}
                 id="local-video-input"
                 type="file"
                 accept="video/*"
@@ -199,7 +186,7 @@ function App() {
         {isLocalVideo && (
           <div className="file-input-wrapper">
             <label htmlFor="subtitle-input">选择字幕文件：</label>
-            <input
+            <input style={{width: 150}}
               id="subtitle-input"
               type="file"
               accept=".srt,.vtt"
@@ -216,7 +203,7 @@ function App() {
           return (
             <div
               key={index}
-              className={isActive ? (isRepeatMode ? 'active-subtitle-repeat' : 'active-subtitle') : ''} 
+              className={isActive ? (isRepeating ? 'active-subtitle-repeat' : 'active-subtitle') : ''} 
               ref={isActive ? (el) => el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }) : null}
               style={{ marginTop: index === 0 ? 'calc(3 * 1.5em)' : '0' }}
             >
