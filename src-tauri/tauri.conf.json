@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tldrawapp",
+  "productName": "EPlayer",
   "version": "0.1.0",
-  "identifier": "com.tldrawapp.app",
+  "identifier": "com.eplayer.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "player",
+        "title": "EPlayer",
         "width": 1200,
         "height": 800
       }

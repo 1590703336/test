@@ -1,141 +1,227 @@
 .logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
+  filter: drop-shadow(0 0 2em #747bff); /* 添加悬停时的阴影效果，颜色为 #747bff */
 }
 
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafb);
+  filter: drop-shadow(0 0 2em #61dafb); /* 添加悬停时的阴影效果，颜色为 React 蓝色 */
 }
+
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif; /* 设置全局字体系列 */
+  font-size: 16px; /* 设置基础字体大小 */
+  line-height: 24px; /* 设置行高 */
+  font-weight: 400; /* 设置默认字体粗细 */
 
-  color: #f4f1f1;
-  background-color: #090808;
+  color: #f5f4f4; /* 设置全局文字颜色 */
+  background-color: #0b0b0b; /* 设置全局背景颜色 */
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
+  font-synthesis: none; /* 禁用字体合成 */
+  text-rendering: optimizeLegibility; /* 优化文本渲染以提高可读性 */
+  -webkit-font-smoothing: antialiased; /* 改善 WebKit 渲染引擎的字体平滑效果 */
+  -moz-osx-font-smoothing: grayscale; /* 改善 macOS 上的字体平滑效果 */
+  -webkit-text-size-adjust: 100%; /* 防止 iOS 调整文本大小 */
 }
 
 .container {
   margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  text-align: center;
+  padding-top: 0%; /* 设置顶部内边距为视口高度的 0% */
+  display: flex; /* 使用 flex 布局 */
+  flex-direction: row; /* 设置子元素按行排列 */
+  justify-content: center; /* 水平居中子元素 */
+  text-align: center; /* 文本居中对齐 */
 }
 
 .main-content {
   flex: 1;
+  height: 100vh; /* 设置为视口高度 */
+  display: flex;
+  flex-direction: column;
 }
 
 .subtitles {
-  width: 300px;
-  padding: 10px;
-  border-left: 1px solid #ccc;
-  overflow-y: auto;
-  max-height: 80vh;
-  text-align: left; /* 添加此行以左对齐文本 */
+  width: 300px; /* 设置字幕区域的宽度 */
+  padding: 10px; /* 添加内边距 */
+  border-left: 1px solid #ccc; /* 添加左侧边框 */
+  overflow-y: auto; /* 添加垂直滚动条以便内容溢出时查看 */
+  max-height: 80vh; /* 设置最大高度为视口高度的 80% */
+  text-align: left; /* 左对齐文本 */
 }
 
 .subtitles div {
-  border-bottom: 1px dashed #6f4e37; /* 添加咖啡色虚线分隔 */
-  padding-bottom: 5px; /* 添加一些内边距 */
-  margin-bottom: 5px; /* 添加一些外边距 */
+  border-bottom: 1px dashed #6f4e37; /* 添加咖啡色虚线分隔符 */
+  padding-bottom: 5px; /* 添加下内边距 */
+  margin-bottom: 5px; /* 添加下外边距 */
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
+  height: 6em; /* 设置 logo 的高度 */
+  padding: 1.5em; /* 添加内边距 */
+  will-change: filter; /* 提示浏览器将会更改 filter 属性，提高渲染性能 */
+  transition: 0.75s; /* 添加过渡效果，持续时间为 0.75 秒 */
 }
 
 .logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
+  filter: drop-shadow(0 0 2em #24c8db); /* 添加 Tauri logo 的悬停阴影效果 */
 }
 
 .row {
-  display: flex;
-  justify-content: center;
+  display: flex; /* 使用 flex 布局 */
+  justify-content: center; /* 水平居中子元素 */
 }
 
 a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  font-weight: 500; /* 设置字体粗细 */
+  color: #646cff; /* 设置链接的颜色 */
+  text-decoration: inherit; /* 继承文本装饰效果 */
 }
 
 a:hover {
-  color: #535bf2;
+  color: #535bf2; /* 设置链接悬停时的颜色 */
 }
 
 h1 {
-  text-align: center;
+  text-align: center; /* 标题居中对齐 */
 }
 
 input,
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  border-radius: 8px; /* 设置圆角边框 */
+  border: 1px solid transparent; /* 设置透明边框 */
+  padding: 0.6em 1.2em; /* 设置内边距 */
+  font-size: 1em; /* 设置字体大小 */
+  font-weight: 500; /* 设置字体粗细 */
+  font-family: inherit; /* 继承父元素的字体 */
+  color: #0f0f0f; /* 设置文字颜色 */
+  background-color: #ffffff; /* 设置背景颜色 */
+  transition: border-color 0.25s; /* 添加边框颜色的过渡效果，持续时间为 0.25 秒 */
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
 }
 
 button {
-  cursor: pointer;
+  cursor: pointer; /* 设置鼠标悬停时为指针样式 */
 }
 
 button:hover {
-  border-color: #396cd8;
+  border-color: #396cd8; /* 按钮悬停时改变边框颜色 */
 }
+
 button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
+  border-color: #396cd8; /* 按钮按下时改变边框颜色 */
+  background-color: #e8e8e8; /* 按钮按下时改变背景颜色 */
 }
 
 input,
 button {
-  outline: none;
+  outline: none; /* 移除默认的聚焦样式 */
 }
 
 #greet-input {
-  margin-right: 5px;
+  margin-right: 5px; /* 添加右外边距 */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    color: #f6f6f6d1;
-    background-color: #000000;
+    color: #f6f6f6d1; /* 设置深色模式下的文字颜色 */
+    background-color: #000000; /* 设置深色模式下的背景颜色 */
   }
 
   a:hover {
-    color: #24c8db;
+    color: #24c8db; /* 深色模式下链接悬停时的颜色 */
   }
 
   input,
   button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
+    color: #ffffff; /* 设置输入框和按钮的文字颜色 */
+    background-color: #0f0f0f98; /* 设置输入框和按钮的背景颜色 */
   }
   button:active {
-    background-color: #0f0f0f69;
+    background-color: #0f0f0f69; /* 设置按钮按下时的背景颜色 */
   }
 }
 
 .active-subtitle {
-  background-color: #f0f8ff; /* 高亮背景色 */
+  background-color: white;
   font-weight: bold; /* 加粗字体 */
   color: red; /* 反显成红色 */
+}
+
+.active-subtitle-repeat {
+  background-color: #ffebcd; /* 这里使用了一个浅橙色，您可以根据需要调整颜色 */
+  font-weight: bold; /* 加粗字体 */
+  color: red; /* 反显成红色 */
+}
+
+/* 添加以下新样式 */
+form {
+  display: flex; /* 使用 flex 布局 */
+  margin-bottom: 10px; /* 设置下外边距 */
+}
+
+form input[type="text"] {
+  flex-grow: 1; /* 输入框占据剩余的可用空间 */
+  margin-right: 10px; /* 添加右外边距 */
+}
+
+form button {
+  white-space: nowrap; /* 防止按钮内的文本换行 */
+}
+
+/* 调整文件输入框的样式 */
+input[type="file"] {
+  display: block; /* 将文件输入框显示为块级元素 */
+  margin-bottom: 10px; /* 添加下外边距 */
+}
+
+.home-icon {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  cursor: pointer;
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.1); /* 半透明背景 */
+  padding: 10px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.home-icon:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.home-icon i {
+  font-size: 24px;
+  color: #fff;
+}
+
+.file-input-wrapper {
+  display: flex; /* 使用 flex 布局 */
+  flex-direction: column; /* 子元素垂直排列 */
+  align-items: flex-start; /* 子元素左对齐 */
+  margin-bottom: 10px; /* 添加下外边距 */
+}
+
+.file-input-wrapper label {
+  margin-bottom: 5px; /* 添加下外边距 */
+  font-weight: bold; /* 设置字体加粗 */
+}
+
+.file-input-wrapper input[type="file"] {
+  width: 100%; /* 文件输入框占据父元素的全部宽度 */
+}
+
+.player-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%; /* 占据 main-content 的全部高度 */
+  min-height: 80vh; /* 最小高度为视口高度的 80% */
+  background-color: #000; /* 添加黑色背景 */
+}
+
+.player-wrapper .react-player {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
