@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import ReactPlayer from 'react-player';
 import "./App.css";
@@ -40,7 +39,7 @@ function App() {
       if (event.key === 'ArrowLeft') {
         // 切换到上一句字幕
         setCurrentSubtitleIndex((prevIndex) => {
-          const newIndex = Math.max(prevIndex - 1, 0); // 确保索引不小于 0
+          const newIndex = Math.max(prevIndex - 1, 1); // 确保索引不小于 0
           const startTime = subtitles[newIndex - 1]?.startSeconds; // 获取上一句字幕的开始时间
           if (playerRef.current) {
             playerRef.current.seekTo(startTime, 'seconds'); // 跳转到上一句字幕的开始时间           
@@ -75,7 +74,7 @@ function App() {
     };
   }, [subtitles, currentSubtitleIndex]); // 确保依赖项包括 currentSubtitleIndex
 
-  // 处理当前播放时间的变化来更新当前的字幕索引
+  // 处理当前播放时间的变化来更当前的字幕索引
   useEffect(() => {
     if (subtitles.length > 0) {
       const currentSubtitle = subtitles.findIndex(subtitle => {
@@ -140,9 +139,9 @@ function App() {
   // 处理重复播放当前字幕
   useEffect(() => {
     if (isRepeating && subtitles.length > 0) {
-      const currentSubtitle = subtitles[currentSubtitleIndex-1];      
+      const currentSubtitle = subtitles[currentSubtitleIndex - 1];
       if (currentSubtitle) {
-        const { startSeconds, endSeconds } = currentSubtitle;        
+        const { startSeconds, endSeconds } = currentSubtitle;
         if (currentTime >= endSeconds) {
           if (playerRef.current) {
             playerRef.current.seekTo(startSeconds, 'seconds'); // 跳转到当前字幕的开始时间
@@ -155,7 +154,7 @@ function App() {
   return (
     <main className="container">
       <div className="home-icon" onClick={resetToHome}>
-        <img src={reactLogo} alt="Home" /> {/* 点击图标返回主页 */}
+        <i className="fas fa-home"></i>
       </div>
       <div className="main-content">
         <div className="player-wrapper">
@@ -177,58 +176,64 @@ function App() {
             </p>
           </div>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'left' }}>
+          <div>
+            {/* 当既不是本地视频也不是网络视频时，显示视频输入选项 */}
+            {!isLocalVideo && !isNetworkVideo && (
+              <>
+                <form onSubmit={handleNetworkVideoSubmit}>
+                  <input
+                    type="text"
+                    value={networkVideoUrl}
+                    onChange={(e) => setNetworkVideoUrl(e.target.value)}
+                    placeholder="输入网络视频链接" // 提示用户输入网络视频链接
+                  />
+                  <button type="submit">加载网络视频</button>
+                </form>
 
-        {/* 当既不是本地视频也不是网络视频时，显示视频输入选项 */}
-        {!isLocalVideo && !isNetworkVideo && (
-          <>
-            <form onSubmit={handleNetworkVideoSubmit}>
-              <input
-                type="text"
-                value={networkVideoUrl}
-                onChange={(e) => setNetworkVideoUrl(e.target.value)}
-                placeholder="输入网络视频链接" // 提示用户输入网络视频链接
-              />
-              <button type="submit">加载网络视频</button>
-            </form>
-
+                <div className="file-input-wrapper">
+                  <label htmlFor="local-video-input">选择本地视频文件：</label>
+                  <input style={{ width: 150 }}
+                    id="local-video-input"
+                    type="file"
+                    accept="video/*"
+                    onChange={handleLocalVideoUpload}
+                  />
+                </div>
+              </>
+            )}
+          </div>
+          {/* 如果是本地视频，显示字幕文件输入选项 */}
+          {isLocalVideo && (
             <div className="file-input-wrapper">
-              <label htmlFor="local-video-input">选择本地视频文件：</label>
-              <input
-                id="local-video-input"
+              <label htmlFor="subtitle-input">选择字幕文件：</label>
+              <input style={{ width: 150 }}
+                id="subtitle-input"
                 type="file"
-                accept="video/*"
-                onChange={handleLocalVideoUpload}
+                accept=".srt,.vtt"
+                onChange={handleSubtitleUpload}
               />
             </div>
-          </>
-        )}
+          )}
+        </div>
 
-        {/* 如果是本地视频，显示字幕文件输入选项 */}
-        {isLocalVideo && (
-          <div className="file-input-wrapper">
-            <label htmlFor="subtitle-input">选择字幕文件：</label>
-            <input
-              id="subtitle-input"
-              type="file"
-              accept=".srt,.vtt"
-              onChange={handleSubtitleUpload}
-            />
-          </div>
-        )}
+
+
+
       </div>
 
-      {/* 显示字幕列表并使当前字幕自动滚动到可视范围内 */}
+      {/* 显示字幕列表使当前字幕自动滚动到可视范围内 */}
       <div className="subtitles" style={{ scrollPaddingTop: 'calc(3 * 1.5em)' }}>
         {subtitles.map((subtitle, index) => {
-          const isActive = currentSubtitleIndex == Number(subtitle.id); // 判断当前字幕是否为活跃字幕
+          const isActive = currentSubtitleIndex == Number(subtitle.id);
           return (
             <div
               key={index}
-              className={isActive ? 'active-subtitle' : ''} // 如果是活跃字幕，则应用高亮样式
-              ref={isActive ? (el) => el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }) : null} // 自动滚动到当前活跃字幕
-              style={{ marginTop: index === 0 ? 'calc(3 * 1.5em)' : '0' }} // 为第一个元素添加额外的顶部间距
+              className={isActive ? (isRepeating ? 'active-subtitle-repeat' : 'active-subtitle') : ''}
+              ref={isActive ? (el) => el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }) : null}
+              style={{ marginTop: index === 0 ? 'calc(3 * 1.5em)' : '0' }}
             >
-              <p>{subtitle.id}  {subtitle.startSeconds} - {subtitle.text}</p> {/* 显示字幕的 ID、开始时间和文本内容 */}
+              <p>{subtitle.id}  {subtitle.startSeconds} - {subtitle.text}</p>
             </div>
           );
         })}

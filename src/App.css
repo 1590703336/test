@@ -140,7 +140,13 @@ button {
 }
 
 .active-subtitle {
-  background-color: #f0f8ff; /* 高亮背景色 */
+  background-color: white;
+  font-weight: bold; /* 加粗字体 */
+  color: red; /* 反显成红色 */
+}
+
+.active-subtitle-repeat {
+  background-color: #ffebcd; /* 这里使用了一个浅橙色，您可以根据需要调整颜色 */
   font-weight: bold; /* 加粗字体 */
   color: red; /* 反显成红色 */
 }
@@ -167,16 +173,25 @@ input[type="file"] {
 }
 
 .home-icon {
-  position: fixed; /* 固定位置，始终显示在视口中 */
-  top: 10px; /* 距离视口顶部 10px */
-  left: 10px; /* 距离视口左侧 10px */
-  cursor: pointer; /* 设置鼠标悬停时为指针样式 */
-  z-index: 1000; /* 设置较高的层级以确保不被其他元素遮挡 */
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  cursor: pointer;
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.1); /* 半透明背景 */
+  padding: 10px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
 }
 
-.home-icon img {
-  width: 30px; /* 设置图标的宽度 */
-  height: 30px; /* 设置图标的高度 */
+.home-icon:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.home-icon i {
+  font-size: 24px;
+  color: #fff;
 }
 
 .file-input-wrapper {
