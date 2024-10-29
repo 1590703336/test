@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/core";
 import ReactPlayer from 'react-player';
 import "./App.css";
@@ -74,7 +73,7 @@ function App() {
     };
   }, [subtitles, currentSubtitleIndex]); // 确保依赖项包括 currentSubtitleIndex
 
-  // 处理当前播放时间的变化来更新当前的字幕索引
+  // 处理当前播放时间的变化来更当前的字幕索引
   useEffect(() => {
     if (subtitles.length > 0) {
       const currentSubtitle = subtitles.findIndex(subtitle => {
@@ -135,7 +134,7 @@ function App() {
   return (
     <main className="container">
       <div className="home-icon" onClick={resetToHome}>
-        <img src={reactLogo} alt="Home" /> {/* 点击图标返回主页 */}
+        <i className="fas fa-home"></i>
       </div>
       <div className="main-content">
         <div className="player-wrapper">
@@ -197,7 +196,7 @@ function App() {
         )}
       </div>
 
-      {/* 显示字幕列表并使当前字幕自动滚动到可视范围内 */}
+      {/* 显示字幕列表使当前字幕自动滚动到可视范围内 */}
       <div className="subtitles" style={{ scrollPaddingTop: 'calc(3 * 1.5em)' }}>
         {subtitles.map((subtitle, index) => {
           const isActive = currentSubtitleIndex == Number(subtitle.id); // 判断当前字幕是否为活跃字幕
