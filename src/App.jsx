@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import ReactPlayer from 'react-player';
 import "./App.css";
 import SrtParser2 from "srt-parser-2"; // 导入 srt-parser-2 以处理字幕文件的解析
+import { getSubtitles } from 'youtube-captions-scraper';
 
 function App() {
   // 定义各种状态变量来存储视频文件路径、字幕、当前播放时间、字幕索引、播放速度等
@@ -92,11 +93,30 @@ function App() {
   const activeSubtitle = subtitles[currentSubtitleIndex]?.text || ''; // 获取当前活跃的字幕文本
 
   // 处理网络视频链接输入
-  const handleNetworkVideoSubmit = (e) => {
+  const handleNetworkVideoSubmit = async (e) => {
     e.preventDefault(); // 阻止表单默认提交行为
     setVideoUrl(networkVideoUrl); // 设置视频链接
     setIsNetworkVideo(true); // 标记为网络视频
     setIsLocalVideo(false); // 标记不是本地视频
+
+    // 调用获取字幕的函数
+    await fetchSubtitles(networkVideoUrl);
+  };
+
+  // 获取字幕的函数
+  const fetchSubtitles = async (url) => {
+    try {
+      // const subtitles = await invoke("fetch_subtitles", { videoUrl: url });
+      // setSubtitles(subtitles);
+    } catch (error) {
+      console.error("Error fetching subtitles:", error);
+    }
+  };
+
+  // 提取视频ID的函数（假设是 YouTube 视频）
+  const extractVideoId = (url) => {
+    const urlParams = new URLSearchParams(new URL(url).search);
+    return urlParams.get('v');
   };
 
   // 处理本地视频文件上传
