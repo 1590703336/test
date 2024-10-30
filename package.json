@@ -14,8 +14,10 @@
     "@tauri-apps/plugin-log": "~2.0.0",
     "@tauri-apps/plugin-shell": "^2",
     "@tldraw/tldraw": "3.3.2",
+    "axios": "^1.7.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-modal": "^3.16.1",
     "react-player": "^2.16.0",
     "srt-parser-2": "^1.2.3"
   },
