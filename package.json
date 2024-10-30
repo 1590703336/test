@@ -16,8 +16,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-player": "^2.16.0",
-    "srt-parser-2": "^1.2.3",
-    "youtube-captions-scraper": "^2.0.3"
+    "srt-parser-2": "^1.2.3"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",

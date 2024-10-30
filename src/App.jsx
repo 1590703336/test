@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import ReactPlayer from 'react-player';
 import "./App.css";
 import SrtParser2 from "srt-parser-2"; // 导入 srt-parser-2 以处理字幕文件的解析
-import { getSubtitles } from 'youtube-captions-scraper';
+
 
 function App() {
   // 定义各种状态变量来存储视频文件路径、字幕、当前播放时间、字幕索引、播放速度等
@@ -38,24 +38,17 @@ function App() {
     const handleKeyDown = (event) => {
       if (event.key === 'ArrowLeft') {
         // 切换到上一句字幕
-        setCurrentSubtitleIndex((prevIndex) => {
-          const newIndex = Math.max(prevIndex - 1, 1); // 确保索引不小于 0
-          const startTime = subtitles[newIndex - 1]?.startSeconds; // 获取上一句字幕的开始时间
-          if (playerRef.current) {
-            playerRef.current.seekTo(startTime, 'seconds'); // 跳转到上一句字幕的开始时间           
-          }
-          return newIndex;
-        });
+        const newIndex = Math.max(currentSubtitleIndex - 1, 1); // 确保索引不小于 0
+        const startTime = subtitles[newIndex - 1]?.startSeconds; // 获取上一句字幕的开始时间
+        if (playerRef.current) {
+          playerRef.current.seekTo(startTime, 'seconds'); // 跳转到上一句字幕的开始时间           
+        }
       } else if (event.key === 'ArrowRight') {
-        // 切换到下一句字幕
-        setCurrentSubtitleIndex((prevIndex) => {
-          const newIndex = Math.min(prevIndex + 1, subtitles.length - 1); // 确保索引不超过字幕长度
-          const startTime = subtitles[newIndex - 1]?.startSeconds; // 获取下一句字幕的开始时间
-          if (playerRef.current) {
-            playerRef.current.seekTo(startTime, 'seconds'); // 跳转到下一句字幕的开始时间
-          }
-          return newIndex;
-        });
+        const newIndex = Math.min(currentSubtitleIndex + 1, subtitles.length - 1); // 确保索引不超过字幕长度
+        const startTime = subtitles[newIndex - 1]?.startSeconds; // 获取下一句字幕的开始时间
+        if (playerRef.current) {
+          playerRef.current.seekTo(startTime, 'seconds'); // 跳转到下一句字幕的开始时间
+        }
       } else if (event.key === 'r') {
         // 切换重复播放当前句子的状态
         setIsRepeating((prev) => !prev);
@@ -76,7 +69,19 @@ function App() {
 
   // 处理当前播放时间的变化来更当前的字幕索引
   useEffect(() => {
-    if (subtitles.length > 0) {
+    if (isRepeating && subtitles.length > 0) {
+      const currentSubtitle = subtitles[currentSubtitleIndex - 1];
+      if (currentSubtitle) {
+        const { id, startSeconds, endSeconds } = currentSubtitle;
+        // console.log(id,startSeconds, currentTime,endSeconds);
+        if (currentTime >= endSeconds) {
+          console.log(id, startSeconds, currentTime, endSeconds);
+          if (playerRef.current) {
+            playerRef.current.seekTo(startSeconds, 'seconds'); // 跳转到当前字幕的开始时间
+          }
+        }
+      }
+    } else if (subtitles.length > 0) {
       const currentSubtitle = subtitles.findIndex(subtitle => {
         const startTime = subtitle.startSeconds;
         const endTime = subtitle.endSeconds;
@@ -87,7 +92,8 @@ function App() {
       }
     }
 
-  }, [currentTime]); // 依赖于当前播放时间的变化
+  }, [currentTime, subtitles]); // 依赖于当前播放时间的变化
+
 
   const activeSubtitle = subtitles[currentSubtitleIndex]?.text || ''; // 获取当前活跃的字幕文本
 
@@ -105,8 +111,8 @@ function App() {
   // 获取字幕的函数
   const fetchSubtitles = async (url) => {
     try {
-      // const subtitles = await invoke("fetch_subtitles", { videoUrl: url });
-      // setSubtitles(subtitles);
+      const subtitles = await invoke("get_transcript", { video: extractVideoId(url) });
+      setSubtitles(subtitles);
     } catch (error) {
       console.error("Error fetching subtitles:", error);
     }
@@ -134,22 +140,12 @@ function App() {
     setSubtitles([]); // 清空字幕
     setIsLocalVideo(false); // 重置本地视频标记
     setIsNetworkVideo(false); // 重置网络视频标记
+    setCurrentTime(0); // 重置当前播放时间
+    setCurrentSubtitleIndex(0); // 重置当前字幕索引
+    setPlaybackRate(1); // 重置播放速度
   };
 
-  // 处理重复播放当前字幕
-  useEffect(() => {
-    if (isRepeating && subtitles.length > 0) {
-      const currentSubtitle = subtitles[currentSubtitleIndex - 1];
-      if (currentSubtitle) {
-        const { startSeconds, endSeconds } = currentSubtitle;
-        if (currentTime >= endSeconds) {
-          if (playerRef.current) {
-            playerRef.current.seekTo(startSeconds, 'seconds'); // 跳转到当前字幕的开始时间
-          }
-        }
-      }
-    }
-  }, [currentTime, isRepeating, currentSubtitleIndex, subtitles]);
+
 
   return (
     <main className="container">
