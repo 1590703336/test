@@ -20,7 +20,6 @@ function App() {
   const [isRepeating, setIsRepeating] = useState(false); // 用于存储是否重复播放当前字幕
   const [updateInfo, setUpdateInfo] = useState(null); // 用于存储更新信息
   const [isModalOpen, setIsModalOpen] = useState(false); // 用于存储更新弹窗的状态
-  const [downloadProgress, setDownloadProgress] = useState(0); // 用于存储下载进度
 
   // 处理字幕文件上传
   function handleSubtitleUpload(event) {
@@ -146,19 +145,6 @@ function App() {
     setCurrentSubtitleIndex(0); // 重置当前字幕索引
     setPlaybackRate(1); // 重置播放速度
   };
-    // 版本比较函数
-  const compareVersions = (v1, v2) => {
-    const v1Parts = v1.split('.').map(Number); // 将版本号拆分并转换为数字
-    const v2Parts = v2.split('.').map(Number); // 将版本号拆分并转换为数字
-
-    for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-        const part1 = v1Parts[i] || 0; // 如果没有该部分，默认为 0
-        const part2 = v2Parts[i] || 0; // 如果没有该部分，默认为 0
-        if (part1 > part2) return 1; // v1 大于 v2
-        if (part1 < part2) return -1; // v1 小于 v2
-    }
-    return 0; // 两个版本号相等
-  };
 
   // 检查更新
   useEffect(() => {
@@ -166,13 +152,9 @@ function App() {
       try {
         // 通过 Axios 请求获取最新版本信息
         const response = await axios.get('./version.json'); // 假设 version.json 文件与 App.jsx 在同一目录下
-        //输出response
-        console.log(response);
         const latestVersion = response.data.latest_version;
-        const localVersion = '1.1.0'; // 假设本地版本是 1.0.0
-        //输出最新版本号和本地版本号
-        console.log(latestVersion);
-        console.log(localVersion);
+        const localVersion = '1.0.0'; // 假设本地版本是 1.0.0
+
         if (compareVersions(latestVersion, localVersion) > 0) { // 使用 compareVersions 函数来比较版本号
           setUpdateInfo(response.data); // 设置更新信息
           setIsModalOpen(true); // 显示更新弹窗
@@ -185,30 +167,23 @@ function App() {
     checkForUpdate();
   }, []);
 
+  // 版本比较函数
+  const compareVersions = (v1, v2) => {
+    const v1Parts = v1.split('.').map(Number); // 将版本号拆分并转换为数字
+    const v2Parts = v2.split('.').map(Number); // 将版本号拆分并转换为数字
+    for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+      const part1 = v1Parts[i] || 0;
+      const part2 = v2Parts[i] || 0;
+      if (part1 > part2) return 1;
+      if (part1 < part2) return -1;
+    }
+    return 0;
+  };
 
-  // 处理更新下载
+  // 处理更新下载（打开指定的网页）
   const handleDownloadUpdate = () => {
-    const url = updateInfo.download_url;
-
-    axios({
-      method: 'get',
-      url,
-      responseType: 'blob',
-      onDownloadProgress: (progressEvent) => {
-        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        setDownloadProgress(progress); // 更新下载进度
-      },
-    })
-      .then((response) => {
-        // 保存下载的文件
-        const link = document.createElement('a');
-        link.href = window.URL.createObjectURL(new Blob([response.data]));
-        link.download = 'new_version.zip';
-        link.click();
-      })
-      .catch((error) => {
-        console.error('下载更新失败:', error);
-      });
+    const updateUrl = updateInfo.download_url;
+    window.open(updateUrl, 'https://google.com'); // 打开指定的更新网页
   };
 
   return (
@@ -301,12 +276,6 @@ function App() {
           <h2>有新版本可用</h2>
           <p>{updateInfo.release_notes}</p>
           <button onClick={handleDownloadUpdate}>立即下载更新</button>
-          {downloadProgress > 0 && (
-            <div>
-              <p>下载进度: {downloadProgress}%</p>
-              <progress value={downloadProgress} max="100"></progress>
-            </div>
-          )}
         </Modal>
       )}
     </main>
