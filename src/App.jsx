@@ -3,7 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import ReactPlayer from 'react-player';
 import "./App.css";
 import SrtParser2 from "srt-parser-2"; // 导入 srt-parser-2 以处理字幕文件的解析
-
+import axios from 'axios'; // 导入 axios 用于处理更新请求
+import Modal from 'react-modal'; // 导入 Modal 用于显示更新弹窗
 
 function App() {
   // 定义各种状态变量来存储视频文件路径、字幕、当前播放时间、字幕索引、播放速度等
@@ -17,6 +18,9 @@ function App() {
   const [isLocalVideo, setIsLocalVideo] = useState(false); // 用于存储是否为本地视频的状态
   const [isNetworkVideo, setIsNetworkVideo] = useState(false); // 用于存储是否为网络视频的状态
   const [isRepeating, setIsRepeating] = useState(false); // 用于存储是否重复播放当前字幕
+  const [updateInfo, setUpdateInfo] = useState(null); // 用于存储更新信息
+  const [isModalOpen, setIsModalOpen] = useState(false); // 用于存储更新弹窗的状态
+  const [downloadProgress, setDownloadProgress] = useState(0); // 用于存储下载进度
 
   // 处理字幕文件上传
   function handleSubtitleUpload(event) {
@@ -44,6 +48,7 @@ function App() {
           playerRef.current.seekTo(startTime, 'seconds'); // 跳转到上一句字幕的开始时间           
         }
       } else if (event.key === 'ArrowRight') {
+        // 切换到下一句字幕
         const newIndex = Math.min(currentSubtitleIndex + 1, subtitles.length - 1); // 确保索引不超过字幕长度
         const startTime = subtitles[newIndex - 1]?.startSeconds; // 获取下一句字幕的开始时间
         if (playerRef.current) {
@@ -51,13 +56,13 @@ function App() {
         }
       } else if (event.key === 'r') {
         // 切换重复播放当前句子的状态
-        setIsRepeating((prev) => !prev);
+        setIsRepeating((prev) => !prev); // 切换 isRepeating 状态
       } else if (event.key === 'ArrowDown') {
         // 增加播放速度
-        setPlaybackRate((prevRate) => Math.min(prevRate + 0.1, 2)); // 最大速度限制为2
+        setPlaybackRate((prevRate) => Math.min(prevRate + 0.1, 2)); // 最大速度限制2
       } else if (event.key === 'ArrowUp') {
         // 降低播放速度
-        setPlaybackRate((prevRate) => Math.max(prevRate - 0.1, 0.5)); // 最小速度限制为0.5
+        setPlaybackRate((prevRate) => Math.max(prevRate - 0.1, 0.5)); // 最小速度限制0.5
       }
     };
 
@@ -67,15 +72,13 @@ function App() {
     };
   }, [subtitles, currentSubtitleIndex]); // 确保依赖项包括 currentSubtitleIndex
 
-  // 处理当前播放时间的变化来更当前的字幕索引
+  // 处理当前播放时间的变化来更新当前的字幕索引
   useEffect(() => {
     if (isRepeating && subtitles.length > 0) {
-      const currentSubtitle = subtitles[currentSubtitleIndex - 1];
+      const currentSubtitle = subtitles[currentSubtitleIndex - 1]; // 获取当前字幕
       if (currentSubtitle) {
-        const { id, startSeconds, endSeconds } = currentSubtitle;
-        // console.log(id,startSeconds, currentTime,endSeconds);
-        if (currentTime >= endSeconds) {
-          console.log(id, startSeconds, currentTime, endSeconds);
+        const { startSeconds, endSeconds } = currentSubtitle;
+        if (currentTime >= endSeconds) { // 如果当前时间超过了字幕的结束时间
           if (playerRef.current) {
             playerRef.current.seekTo(startSeconds, 'seconds'); // 跳转到当前字幕的开始时间
           }
@@ -91,11 +94,10 @@ function App() {
         setCurrentSubtitleIndex(Number(subtitles[currentSubtitle].id)); // 更新当前字幕索引         
       }
     }
-
   }, [currentTime, subtitles]); // 依赖于当前播放时间的变化
 
-
-  const activeSubtitle = subtitles[currentSubtitleIndex]?.text || ''; // 获取当前活跃的字幕文本
+  // 获取当前活跃的字幕文本
+  const activeSubtitle = subtitles[currentSubtitleIndex]?.text || '';
 
   // 处理网络视频链接输入
   const handleNetworkVideoSubmit = async (e) => {
@@ -111,22 +113,22 @@ function App() {
   // 获取字幕的函数
   const fetchSubtitles = async (url) => {
     try {
-      const subtitles = await invoke("get_transcript", { video: extractVideoId(url) });
-      setSubtitles(subtitles);
+      const subtitles = await invoke("get_transcript", { video: extractVideoId(url) }); // 从后端获取字幕
+      setSubtitles(subtitles); // 设置字幕
     } catch (error) {
-      console.error("Error fetching subtitles:", error);
+      console.error("Error fetching subtitles:", error); // 处理获取字幕的错误
     }
   };
 
   // 提取视频ID的函数（假设是 YouTube 视频）
   const extractVideoId = (url) => {
-    const urlParams = new URLSearchParams(new URL(url).search);
-    return urlParams.get('v');
+    const urlParams = new URLSearchParams(new URL(url).search); // 从 URL 中提取查询参数
+    return urlParams.get('v'); // 返回视频 ID
   };
 
   // 处理本地视频文件上传
   const handleLocalVideoUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files[0]; // 获取上传的文件对象
     if (file) {
       setVideoUrl(URL.createObjectURL(file)); // 创建视频文件的 URL 并设置为视频路径
       setIsLocalVideo(true); // 标记为本地视频
@@ -144,12 +146,74 @@ function App() {
     setCurrentSubtitleIndex(0); // 重置当前字幕索引
     setPlaybackRate(1); // 重置播放速度
   };
+    // 版本比较函数
+  const compareVersions = (v1, v2) => {
+    const v1Parts = v1.split('.').map(Number); // 将版本号拆分并转换为数字
+    const v2Parts = v2.split('.').map(Number); // 将版本号拆分并转换为数字
+
+    for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+        const part1 = v1Parts[i] || 0; // 如果没有该部分，默认为 0
+        const part2 = v2Parts[i] || 0; // 如果没有该部分，默认为 0
+        if (part1 > part2) return 1; // v1 大于 v2
+        if (part1 < part2) return -1; // v1 小于 v2
+    }
+    return 0; // 两个版本号相等
+  };
+
+  // 检查更新
+  useEffect(() => {
+    const checkForUpdate = async () => {
+      try {
+        // 通过 Axios 请求获取最新版本信息
+        const response = await axios.get('./version.json'); // 假设 version.json 文件与 App.jsx 在同一目录下
+        //输出response
+        console.log(response);
+        const latestVersion = response.data.latest_version;
+        const localVersion = '1.1.0'; // 假设本地版本是 1.0.0
+        //输出最新版本号和本地版本号
+        console.log(latestVersion);
+        console.log(localVersion);
+        if (compareVersions(latestVersion, localVersion) > 0) { // 使用 compareVersions 函数来比较版本号
+          setUpdateInfo(response.data); // 设置更新信息
+          setIsModalOpen(true); // 显示更新弹窗
+        }
+      } catch (error) {
+        console.error('检查更新失败:', error);
+      }
+    };
+
+    checkForUpdate();
+  }, []);
 
 
+  // 处理更新下载
+  const handleDownloadUpdate = () => {
+    const url = updateInfo.download_url;
+
+    axios({
+      method: 'get',
+      url,
+      responseType: 'blob',
+      onDownloadProgress: (progressEvent) => {
+        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setDownloadProgress(progress); // 更新下载进度
+      },
+    })
+      .then((response) => {
+        // 保存下载的文件
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(new Blob([response.data]));
+        link.download = 'new_version.zip';
+        link.click();
+      })
+      .catch((error) => {
+        console.error('下载更新失败:', error);
+      });
+  };
 
   return (
     <main className="container">
-      <div className="home-icon" onClick={resetToHome}>
+      <div className="home-icon" onClick={resetToHome}> {/* 点击图标重置应用状态 */}
         <i className="fas fa-home"></i>
       </div>
       <div className="main-content">
@@ -161,8 +225,8 @@ function App() {
             height="100%"
             controls={true} // 显示播放控制按钮
             onProgress={({ playedSeconds }) => setCurrentTime(playedSeconds)} // 更新当前播放时间
-            playing={true} // 确保视频在切换时播放
-            progressInterval={100} // 每 100 毫秒更新进度
+            playing={true} // 确保视频在切换时自动播放
+            progressInterval={100} // 每 100 毫秒更新播放进度
             playbackRate={playbackRate} // 设置播放速度
           />
           <div className="subtitle-overlay">
@@ -212,21 +276,17 @@ function App() {
             </div>
           )}
         </div>
-
-
-
-
       </div>
 
       {/* 显示字幕列表使当前字幕自动滚动到可视范围内 */}
       <div className="subtitles" style={{ scrollPaddingTop: 'calc(3 * 1.5em)' }}>
         {subtitles.map((subtitle, index) => {
-          const isActive = currentSubtitleIndex == Number(subtitle.id);
+          const isActive = currentSubtitleIndex == Number(subtitle.id); // 判断当前字幕是否为活跃字幕
           return (
             <div
               key={index}
-              className={isActive ? (isRepeating ? 'active-subtitle-repeat' : 'active-subtitle') : ''}
-              ref={isActive ? (el) => el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }) : null}
+              className={isActive ? (isRepeating ? 'active-subtitle-repeat' : 'active-subtitle') : ''} // 设置当前字幕的高亮样式
+              ref={isActive ? (el) => el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }) : null} // 自动滚动到当前活跃字幕
               style={{ marginTop: index === 0 ? 'calc(3 * 1.5em)' : '0' }}
             >
               <p>{subtitle.id}  {subtitle.startSeconds} - {subtitle.text}</p>
@@ -234,6 +294,21 @@ function App() {
           );
         })}
       </div>
+
+      {/* 更新弹窗 */}
+      {updateInfo && (
+        <Modal isOpen={isModalOpen} onRequestClose={() => setIsModalOpen(false)}>
+          <h2>有新版本可用</h2>
+          <p>{updateInfo.release_notes}</p>
+          <button onClick={handleDownloadUpdate}>立即下载更新</button>
+          {downloadProgress > 0 && (
+            <div>
+              <p>下载进度: {downloadProgress}%</p>
+              <progress value={downloadProgress} max="100"></progress>
+            </div>
+          )}
+        </Modal>
+      )}
     </main>
   );
 }
