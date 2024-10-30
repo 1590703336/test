@@ -182,8 +182,8 @@ function App() {
 
   // 处理更新下载（打开指定的网页）
   const handleDownloadUpdate = () => {
-    const updateUrl = updateInfo.download_url;
-    window.open(updateUrl, 'https://google.com'); // 打开指定的更新网页
+    const updateUrl = updateInfo.download_url; // 获取更新下载链接from version.json
+    window.open(updateUrl, '下载地址'); // 打开指定的更新网页
   };
 
   return (
