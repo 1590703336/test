@@ -112,6 +112,7 @@ function App() {
   const fetchSubtitles = async (url) => {
     try {
       const subtitles = await invoke("get_transcript", { video: extractVideoId(url) });
+      console.log(subtitles);
       setSubtitles(subtitles);
     } catch (error) {
       console.error("Error fetching subtitles:", error);
@@ -120,6 +121,13 @@ function App() {
 
   // 提取视频ID的函数（假设是 YouTube 视频）
   const extractVideoId = (url) => {
+    // 处理短链接格式 youtu.be
+    if (url.includes('youtu.be')) {
+      const pathname = new URL(url).pathname;
+      return pathname.slice(1); // 移除开头的斜杠
+    }
+    
+    // 处理标准格式 youtube.com/watch?v=
     const urlParams = new URLSearchParams(new URL(url).search);
     return urlParams.get('v');
   };

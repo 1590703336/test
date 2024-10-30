@@ -1,4 +1,5 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+use tauri_plugin_log::{Target, TargetKind};
 use youtube_captions::{CaptionScraper, Digest, DigestScraper};
 use youtube_captions::format::Format;
 use youtube_captions::language_tags::LanguageTag;
@@ -34,7 +35,7 @@ struct Subtitle {
 }
 
 #[tauri::command]
-async fn get_transcript(video: String) -> Vec<Subtitle> {
+async fn get_transcript(video: String) -> Vec<Subtitle> {    
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(120))
         .build().unwrap();
@@ -52,7 +53,7 @@ async fn get_transcript(video: String) -> Vec<Subtitle> {
     let root: Transcript = serde_json::from_str(transcript_json.as_str()).unwrap();
 
     // Collect all utf8 fields from all events and all segments
-    let subtitles: Vec<Subtitle> = root.events.iter()
+    let mut subtitles: Vec<Subtitle> = root.events.iter()
         .enumerate()
         .filter_map(|(index, event)| {
             let start_seconds = event.tStartMs.map(|t| t / 1000.0)?;
@@ -67,9 +68,51 @@ async fn get_transcript(video: String) -> Vec<Subtitle> {
             })
         })
         .flatten()
-        .collect();
+        .collect();    
 
-    subtitles
+    // 检查是否有包含换行符的字幕
+    if subtitles.iter().any(|s| s.text.contains('\n')) {
+        // 处理包含换行符的字幕
+        let mut merged_subtitles = Vec::new();
+        let mut current_text = String::new();
+        let mut current_start = -1.0;
+        let mut current_id = 1;
+
+        for subtitle in subtitles {
+            if subtitle.text.contains('\n') {
+                // 当前字幕包含换行符,表示一行字幕结束                     
+                current_text.push_str(&subtitle.text);
+                merged_subtitles.push(Subtitle {
+                    id: current_id,
+                    text: current_text,
+                    startSeconds: current_start,
+                    endSeconds: -1.0
+                });
+                if current_id > 1 {
+                    merged_subtitles[current_id as usize - 2].endSeconds = current_start;
+                }
+                current_text = String::new();
+                current_start = -1.0;
+                current_id += 1;
+            } else {
+                // 累积文本       
+                if current_start == -1.0 {
+                    current_start = subtitle.startSeconds;
+                }  
+                current_text.push_str(&subtitle.text);
+            }
+        }        
+
+        // 移除所有换行符
+        merged_subtitles.iter_mut().for_each(|s| {
+            s.text = s.text.replace('\n', " ");
+        });
+
+        merged_subtitles
+    } else {
+        // 如果没有换行符，直接返回原始字幕
+        subtitles
+    }
 }
 
 fn get_caption_language(scraped: &Digest) -> Option<LanguageTag> {
@@ -125,6 +168,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![greet, get_transcript])
+        .plugin(tauri_plugin_log::Builder::new().build())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
