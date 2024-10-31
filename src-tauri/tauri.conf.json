@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "EPlayer",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "identifier": "com.eplayer.app",
   "build": {
     "beforeDevCommand": "pnpm dev",
@@ -9,7 +9,21 @@
     "beforeBuildCommand": "pnpm build",
     "frontendDist": "../dist"
   },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "dialog": true,
+      "windows": {
+        "installMode": "basicUi"
+      },
+      "endpoints": [
+        "https://gitee.com/xzkids/eplayer-assets/raw/master/version.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENEN0ZBN0ZDNEY2QTFFRTMKUldUakhtcFAvS2QvellmRE5FZ01Yc3RsUGxmbFd4c2dJb1JWaXhrNVVFQUdVemF6VTBVb3JFSk4K"
+    }
+  },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
         "title": "EPlayer      ←:last  →:next  ↑:speed up  ↓:speed down  r:repeat",
@@ -18,12 +32,17 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["**", "**/**"]
+      }
     }
   
   },
  
   "bundle": {
+    "createUpdaterArtifacts": true,
     "active": true,
     "targets": "all",
     "icon": [

@@ -14,8 +14,14 @@ importers:
       '@tauri-apps/plugin-log':
         specifier: ~2.0.0
         version: 2.0.0
+      '@tauri-apps/plugin-process':
+        specifier: ~2.0.0
+        version: 2.0.0
       '@tauri-apps/plugin-shell':
         specifier: ^2
+        version: 2.0.0
+      '@tauri-apps/plugin-updater':
+        specifier: ~2.0.0
         version: 2.0.0
       '@tldraw/tldraw':
         specifier: 3.3.2
@@ -1080,8 +1086,14 @@ packages:
   '@tauri-apps/plugin-log@2.0.0':
     resolution: {integrity: sha512-C+NII9vzswqnOQE8k7oRtnaw0z5TZsMmnirRhXkCKDEhQQH9841Us/PC1WHtGiAaJ8za1A1JB2xXndEq/47X/w==}
 
+  '@tauri-apps/plugin-process@2.0.0':
+    resolution: {integrity: sha512-OYzi0GnkrF4NAnsHZU7U3tjSoP0PbeAlO7T1Z+vJoBUH9sFQ1NSLqWYWQyf8hcb3gVWe7P1JggjiskO+LST1ug==}
+
   '@tauri-apps/plugin-shell@2.0.0':
     resolution: {integrity: sha512-OpW2+ycgJLrEoZityWeWYk+6ZWP9VyiAfbO+N/O8VfLkqyOym8kXh7odKDfINx9RAotkSGBtQM4abyKfJDkcUg==}
+
+  '@tauri-apps/plugin-updater@2.0.0':
+    resolution: {integrity: sha512-N0cl71g7RPr7zK2Fe5aoIwzw14NcdLcz7XMGFWZVjprsqgDRWoxbnUkknyCQMZthjhGkppCd/wN2MIsUz+eAhQ==}
 
   '@tldraw/editor@3.3.2':
     resolution: {integrity: sha512-kofRJIWsVIMWXbEho4MR1utYd4S/7TbTbz4UOaB6hb56OPckIjCIx/sLCN9Yq2HPh81U3DDk7g3LYrzZCuIhRA==}
@@ -2348,7 +2360,15 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.0.2
 
+  '@tauri-apps/plugin-process@2.0.0':
+    dependencies:
+      '@tauri-apps/api': 2.0.2
+
   '@tauri-apps/plugin-shell@2.0.0':
+    dependencies:
+      '@tauri-apps/api': 2.0.2
+
+  '@tauri-apps/plugin-updater@2.0.0':
     dependencies:
       '@tauri-apps/api': 2.0.2
 

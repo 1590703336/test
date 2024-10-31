@@ -3,8 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import ReactPlayer from 'react-player';
 import "./App.css";
 import SrtParser2 from "srt-parser-2"; // 导入 srt-parser-2 以处理字幕文件的解析
-import axios from 'axios'; // 导入 axios 用于处理更新请求
-import Modal from 'react-modal'; // 导入 Modal 用于显示更新弹窗
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 
 function App() {
   // 定义各种状态变量来存储视频文件路径、字幕、当前播放时间、字幕索引、播放速度等
@@ -35,6 +35,38 @@ function App() {
       reader.readAsText(file); // 读取文件内容为文本
     }
   }
+
+  useEffect(() => {
+    const checkUpdate = async () => {
+      const update = await check();
+      if (update) {
+        console.log(
+          `found update ${update.version} from ${update.date} with notes ${update.body}`
+        );
+        let downloaded = 0;
+        let contentLength = 0;
+        await update.downloadAndInstall((event) => {
+          switch (event.event) {
+            case 'Started':
+              contentLength = event.data.contentLength;
+              console.log(`started downloading ${event.data.contentLength} bytes`);
+              break;
+            case 'Progress':
+              downloaded += event.data.chunkLength;
+              console.log(`downloaded ${downloaded} from ${contentLength}`);
+              break;
+            case 'Finished':
+              console.log('download finished');
+              break;
+          }
+        });
+        console.log('update installed');
+        await relaunch();
+      }
+    };
+    
+    checkUpdate();
+  }, []);
 
   // 处理键盘事件的效果，例如切换字幕、调整播放速度等
   useEffect(() => {
@@ -112,7 +144,8 @@ function App() {
   // 获取字幕的函数
   const fetchSubtitles = async (url) => {
     try {
-      const subtitles = await invoke("get_transcript", { video: extractVideoId(url) }); // 从后端获取字幕
+      const subtitles = await invoke("get_transcript", { video: extractVideoId(url) }); // 从后端获取字幕    
+      console.log(subtitles);
       setSubtitles(subtitles); // 设置字幕
     } catch (error) {
       console.error("Error fetching subtitles:", error); // 处理获取字幕的错误
@@ -126,7 +159,7 @@ function App() {
       const pathname = new URL(url).pathname;
       return pathname.slice(1); // 移除开头的斜杠
     }
-    
+
     // 处理标准格式 youtube.com/watch?v=
     const urlParams = new URLSearchParams(new URL(url).search);
     return urlParams.get('v');
@@ -151,47 +184,7 @@ function App() {
     setCurrentTime(0); // 重置当前播放时间
     setCurrentSubtitleIndex(0); // 重置当前字幕索引
     setPlaybackRate(1); // 重置播放速度
-  };
-
-  // 检查更新
-  useEffect(() => {
-    const checkForUpdate = async () => {
-      try {
-        // 通过 Axios 请求获取最新版本信息
-        const response = await axios.get('./version.json'); // 假设 version.json 文件与 App.jsx 在同一目录下
-        const latestVersion = response.data.latest_version;
-        const localVersion = '1.0.0'; // 假设本地版本是 1.0.0
-
-        if (compareVersions(latestVersion, localVersion) > 0) { // 使用 compareVersions 函数来比较版本号
-          setUpdateInfo(response.data); // 设置更新信息
-          setIsModalOpen(true); // 显示更新弹窗
-        }
-      } catch (error) {
-        console.error('检查更新失败:', error);
-      }
-    };
-
-    checkForUpdate();
-  }, []);
-
-  // 版本比较函数
-  const compareVersions = (v1, v2) => {
-    const v1Parts = v1.split('.').map(Number); // 将版本号拆分并转换为数字
-    const v2Parts = v2.split('.').map(Number); // 将版本号拆分并转换为数字
-    for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-      const part1 = v1Parts[i] || 0;
-      const part2 = v2Parts[i] || 0;
-      if (part1 > part2) return 1;
-      if (part1 < part2) return -1;
-    }
-    return 0;
-  };
-
-  // 处理更新下载（打开指定的网页）
-  const handleDownloadUpdate = () => {
-    const updateUrl = updateInfo.download_url; // 获取更新下载链接from version.json
-    window.open(updateUrl, '下载地址'); // 打开指定的更新网页
-  };
+  };  
 
   return (
     <main className="container">
