@@ -144,8 +144,7 @@ function App() {
   // 获取字幕的函数
   const fetchSubtitles = async (url) => {
     try {
-      const subtitles = await invoke("get_transcript", { video: extractVideoId(url) }); // 从后端获取字幕    
-      console.log(subtitles);
+      const subtitles = await invoke("get_transcript", { video: extractVideoId(url) }); // 从后端获取字幕          
       setSubtitles(subtitles); // 设置字幕
     } catch (error) {
       console.error("Error fetching subtitles:", error); // 处理获取字幕的错误
