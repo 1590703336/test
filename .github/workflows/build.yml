@@ -1,41 +1,54 @@
-name: Build Tauri App for macOS
-
+name: Release
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: macos-latest
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest]
+    runs-on: ${{ matrix.platform }}
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
 
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
-          toolchain: stable
-          override: true
+          version: 8
+          run_install: false
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Build Tauri app
-        run: npm run build && cargo tauri build
+      - name: Install dependencies (macos only)
+        if: matrix.platform == 'macos-latest'
+        run: |
+          rustup target add aarch64-apple-darwin
+          rustup target add x86_64-apple-darwin
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
-          name: tauri-app
-          path: src-tauri/target/release/bundle/macos/*.app
+          tagName: ${{ github.ref_name }}
+          releaseName: 'EPlayer v__VERSION__'
+          releaseBody: '请查看 CHANGELOG.md 了解详细更新内容。'
+          releaseDraft: true
+          prerelease: false
