@@ -1,0 +1,40 @@
+name: Build Tauri App for macOS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Tauri app
+        run: npm run build && cargo tauri build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: tauri-app
+          path: src-tauri/target/release/bundle/macos/*.app
